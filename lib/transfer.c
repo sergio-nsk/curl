@@ -244,7 +244,8 @@ static ssize_t xfer_recv_resp(struct Curl_easy *data,
  * buffer)
  */
 static CURLcode sendrecv_dl(struct Curl_easy *data,
-                            struct SingleRequest *k)
+                            struct SingleRequest *k,
+                            struct curltime *nowp)
 {
   struct connectdata *conn = data->conn;
   CURLcode result = CURLE_OK;
@@ -283,8 +284,19 @@ static CURLcode sendrecv_dl(struct Curl_easy *data,
        * cpu unnecessarily. */
       if(total_received && (total_received >= (data->set.max_recv_speed / 4)))
         break;
+#if 0
       if(data->set.max_recv_speed < (curl_off_t)bytestoread)
         bytestoread = (size_t)data->set.max_recv_speed;
+#else
+      if((size_t)data->set.max_recv_speed < bytestoread) {
+          /* make sure not more than the max recv speed bytes downloaded at
+           * once */
+          const curl_off_t toread = data->set.max_recv_speed -
+          (data->progress.dl.cur_size - data->progress.dl.limit.start_size) %
+            data->set.max_recv_speed;
+        bytestoread = (size_t)toread;
+      }
+#endif
     }
 
     rcvd_eagain = FALSE;
@@ -342,6 +354,12 @@ static CURLcode sendrecv_dl(struct Curl_easy *data,
     /* if we are PAUSEd or stopped receiving, leave the loop */
     if((k->keepon & KEEP_RECV_PAUSE) || !(k->keepon & KEEP_RECV))
       break;
+
+    if(Curl_pgrsLimitWaitTime(&data->progress.dl,
+                              data->set.max_recv_speed,
+                              *nowp)) {
+      maxloops = 0;
+    }
 
   } while(maxloops--);
 
@@ -402,7 +420,7 @@ CURLcode Curl_sendrecv(struct Curl_easy *data, struct curltime *nowp)
   /* We go ahead and do a read if we have a readable socket or if the stream
      was rewound (in which case we have data in a buffer) */
   if(k->keepon & KEEP_RECV) {
-    result = sendrecv_dl(data, k);
+    result = sendrecv_dl(data, k, nowp);
     if(result || data->req.done)
       goto out;
   }
