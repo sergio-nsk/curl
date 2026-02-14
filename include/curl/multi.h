@@ -230,6 +230,18 @@ CURL_EXTERN CURLMcode curl_multi_perform(CURLM *multi_handle,
 CURL_EXTERN CURLMcode curl_multi_cleanup(CURLM *multi_handle);
 
 /*
+ * Name:    curl_multi_count_connections()
+ *
+ * Desc:    It returns the number of opened connections. The number is
+ *          actualized in curl_multi_perform, curl_multi_socket*.
+ *
+ * Returns: CURLMcode type, general multi error code.
+ */
+CURL_EXTERN CURLMcode curl_multi_count_connections(CURLM *multi_handle,
+                                                   int *wrtiing,
+                                                   int *reading);
+
+/*
  * Name:    curl_multi_info_read()
  *
  * Desc:    Ask the multi handle if there is any messages/informationals from

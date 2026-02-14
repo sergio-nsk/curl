@@ -2951,6 +2951,32 @@ CURLMcode curl_multi_cleanup(CURLM *m)
   return CURLM_BAD_HANDLE;
 }
 
+CURLMcode curl_multi_count_connections(CURLM *m, int *writing, int *reading)
+{
+  struct Curl_multi *multi = m;
+  unsigned int mid;
+
+  *writing = 0;
+  *reading = 0;
+  if(Curl_uint_bset_first(&multi->process, &mid)) {
+    do {
+      struct Curl_easy *data = Curl_multi_get_easy(multi, mid);
+
+      if(!data) {
+        DEBUGASSERT(0);
+        continue;
+      }
+
+      if(MSTATE_PERFORMING <= data->mstate && data->mstate < MSTATE_DONE)
+        (*reading)++;
+      else if(MSTATE_DOING <= data->mstate && data->mstate < MSTATE_DID)
+        (*writing)++;
+    }
+    while(Curl_uint_bset_next(&multi->process, mid, &mid));
+  }
+  return CURLM_OK;
+}
+
 /*
  * curl_multi_info_read()
  *
