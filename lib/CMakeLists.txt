@@ -32,6 +32,15 @@ configure_file("curl_config.h.cmake" "${CMAKE_CURRENT_BINARY_DIR}/curl_config.h"
 curl_transform_makefile_inc("Makefile.inc" "${CMAKE_CURRENT_BINARY_DIR}/Makefile.inc.cmake")
 include("${CMAKE_CURRENT_BINARY_DIR}/Makefile.inc.cmake")
 
+if(PS5_PORTABLE)
+    list(REMOVE_ITEM CSOURCES
+        curl_addrinfo.c
+        fake_addrinfo.c
+        hostip.c
+        hostip4.c
+        hostip6.c)
+endif()
+
 list(APPEND HHEADERS "${CMAKE_CURRENT_BINARY_DIR}/curl_config.h")
 
 # The rest of the build

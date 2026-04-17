@@ -40,7 +40,9 @@
 #include <sys/ioctl.h>
 #endif
 #ifndef UNDER_CE
+#ifndef PS5_PORTABLE
 #include <signal.h>
+#endif
 #endif
 
 #ifdef HAVE_SYS_PARAM_H
