@@ -66,7 +66,6 @@ int Curl_pipe(curl_socket_t socks[2], bool nonblocking);
 #define SOCKETPAIR_TYPE SOCK_STREAM
 #endif
 
-#define USE_SOCKETPAIR
 #define wakeup_create(p,nb)                                     \
   Curl_socketpair(SOCKETPAIR_FAMILY, SOCKETPAIR_TYPE, 0, p, nb)
 
